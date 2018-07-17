@@ -2,6 +2,7 @@
   div
     PrivateHeader.header(:payload='payload')
     div.container
+      b Payload: {{payload}}
       span
         div.navbar-right
           a(href='#' onclick='return false' @click='toggleMap')
@@ -14,9 +15,12 @@
             button(@click.prevent='homeTour')
               b {{tour.name}} Tour (site: {{site_number}})
           Site(:tour='tour' :sites='sites' :site_number='site_number' :next='nextSite' :last='previousSite')
-        div(v-else)
+        div(v-else-if='active_id')
           h3 {{tour.name}} Tour [{{this.sites.length}} / {{this.markers.length}} sites] : {{$route.params.id}}
           hr
+        div(v-else)
+          h3 Tours
+          RecursiveList(:list='aliases' :onPick='tourModal' :options='tour_options')
       div(v-if='map_is_open')
         Map(id: 'tourMap' title='tour map' :markers='markers' :index='index' :map="map_options" :onClick='gotoSite')
         p &nbsp;
@@ -93,6 +97,7 @@ export default {
 
       siteURL: config.siteMirrorUrl,
       opensites: {'idnull': true, 'id0': true, 'id1': true},
+      tour_options: { table: 'tour', nameKey: 'alias', stored: false, label: 'Tour', linkTo: 'UTM' },
       options: { table: 'site', nameKey: 'alias', stored: true, label: 'site' },
       map_options: {
         style: 'height: 600px; width: 800px;',
@@ -101,7 +106,7 @@ export default {
         center: {lat: 48.203, lng: 16.37}
       },
       map_is_open: false,
-      payload: {}
+      login: {}
     }
   },
   props: {
@@ -189,11 +194,32 @@ export default {
   },
   mounted: function () {
     console.log('mounted')
-    var payload = this.$store.getters.payload
-    console.log('payload: ' + JSON.stringify(payload))
-    this.payload = payload
+    var login = this.$store.getters.payload
+    console.log('login payload: ' + JSON.stringify(login))
+    this.login = login
   },
   computed: {
+    payload: function () {
+      var pl = this.$store.getters.payload || '{}'
+      console.log('computed payload: ' + pl.constructor + ' : ' + pl)
+      if (pl.constructor === Object) {
+        return pl
+      } else {
+        return JSON.parse(pl)
+      }
+    },
+    active_id: function () {
+      return this.$route.params.id
+    },
+    aliases: function () {
+      var aliases = []
+      for (var i = 0; i < this.DBtours.length; i++) {
+        var tour = JSON.parse(JSON.stringify(this.DBtours[i]))
+
+        aliases.push(tour)
+      }
+      return aliases
+    },
     index: function () {
       if (this.site_number) {
         return this.site_number - 1
@@ -229,6 +255,12 @@ export default {
       } else {
         console.log('first site .. cannot go lower...')
       }
+    },
+    tourModal: function (record) {
+      console.log('retrieve more schedule info from record: ' + JSON.stringify(record))
+
+      this.$store.dispatch('setModalData', record)
+      this.$store.getters.toggleModal('info-modal')
     },
     siteModal: function (record) {
       console.log('retrieve more schedule info from record: ' + JSON.stringify(record))

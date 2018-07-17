@@ -3,17 +3,17 @@
     div.col-md-2.info-logo
       a(href='/')
         img(src='/static/images/utm.png' height='40px')
-    div.col-md-6.info-left
+    div.col-md-4.info-left
       b.input-lg UTM - &nbsp; &nbsp;
       b Universal Touring Machine
 
       <!-- Demo(:demo="demo" name="patient") -->
       <!-- User(role='patient' :user="patient" title='Patient' :globalSearch="userSearch" :fields="userFields") -->
-    div.col-md-4
+    div.col-md-6
       <!-- navbar-right items listed from right to left ! -->
       span.navbar-right
         span &nbsp; &nbsp;
-        LoginPopup(icon='bars') &nbsp; &nbsp; 
+        LoginPopup(icon='bars' :payload='payload') &nbsp; &nbsp; 
 
         <!-- Demo(:demo="demo" name='staff') -->
         <!-- User(role='staff' :user="staff" title='staff' include='staff' :globalSearch="staffSearch" :search="addStaff") -->
@@ -53,7 +53,16 @@
       },
       demo: {
         type: Boolean
+      },
+      payload: {
+        type: Object
       }
+    },
+    mounted: function () {
+      // this.payload = this.$store.getters.payload
+      console.log('mounted in private header: ' + JSON.stringify(this.payload))
+    },
+    computed: {
     },
     methods: {
       setPatient (data) {
